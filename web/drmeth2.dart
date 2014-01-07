@@ -13,7 +13,9 @@ List<Building> buildings = new List<Building>(5);
 abstract class Building {
   String name;
   int count=1;
+  bool justBoughtAnotherone = false;
   int worker=1;//beware
+  bool justBoughtWorker = false;
   int maxWorker;
   int priceWorker;
   double methPerSecond;
@@ -27,15 +29,19 @@ abstract class Building {
     this.methPerSecond = methPerSecond;
   }
   
-  void buyAnotherone() {
-    if(money > price) {
-      money -= price;
-      count++;
-    }
+  void buyAnotherone(MouseEvent e) {
+    //if(!justBoughtAnotherone){
+      
+      if(money > price) {
+        money -= price;
+        count++;
+      //  justBoughtAnotherone = true;
+      }
+    //}
   }
   
-  void buyWorker() {
-    if(money > priceWorker && worker < maxWorker) { // make the button disable later!
+  void buyWorker(MouseEvent e) {
+    if(money > priceWorker && worker < maxWorker*count) { // make the button disable later!
       money -= priceWorker;
       worker++;      
     }
@@ -47,11 +53,12 @@ abstract class Building {
 }
 
 class Trailer extends Building {
-  Trailer() : super("Trailer", 2000, 5, 500, 1.1);
+  Trailer() : super("Trailer", 1, 5, 1, 1.1);
 }
 
 void buyTrailer(MouseEvent e) {
   buildings[0] = new Trailer();
+  //updateTable();
 }
 
 void main() {
@@ -82,6 +89,8 @@ void update(double time) {
   }
   render();
   
+  updateTable(); //dunno
+  
   window.animationFrame.then(update);
 }
 
@@ -89,6 +98,18 @@ void updateVelos() {
   veloMeth = 0.0;
   for(int i = 0; i<buildings.length; i++){
     if(buildings[i] != null) veloMeth += buildings[i].methVelo;
+  }
+}
+
+void updateTable() {
+  if(buildings[0] != null){
+    Building aktBui = buildings[0]; // add a for loop here later.
+    querySelector("#slot1Count").text = aktBui.count.toString();
+    querySelector("#slot1BuyAnotherone").onClick.listen(buildings[0].buyAnotherone);
+    querySelector("#slot1Name").text = aktBui.name;
+    var maxWorker = aktBui.maxWorker * aktBui.count;
+    querySelector("#slot1Worker").text = aktBui.worker.toString() + " / " + maxWorker.toString();
+    querySelector("#slot1BuyWorker").onClick.listen(buildings[0].buyWorker);
   }
 }
 
@@ -107,7 +128,7 @@ void cook(MouseEvent e) {
 }
 
 void sell(MouseEvent e) {
-  if(meth > 0) {
+  if(meth >= 1) {
     meth--;
     money++;
   }
