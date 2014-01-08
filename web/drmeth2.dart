@@ -30,14 +30,10 @@ abstract class Building {
   }
   
   void buyAnotherone(MouseEvent e) {
-    //if(!justBoughtAnotherone){
-      
-      if(money > price) {
+    if(money > price) {
         money -= price;
         count++;
-      //  justBoughtAnotherone = true;
-      }
-    //}
+    }
   }
   
   void buyWorker(MouseEvent e) {
@@ -59,10 +55,12 @@ class Trailer extends Building {
 void buyTrailer(MouseEvent e) {
   buildings[0] = new Trailer();
   //updateTable();
+  initTable();
 }
 
 void main() {
   initButtons();
+  //initTable();
   
   window.animationFrame.then(update);
 }
@@ -105,12 +103,16 @@ void updateTable() {
   if(buildings[0] != null){
     Building aktBui = buildings[0]; // add a for loop here later.
     querySelector("#slot1Count").text = aktBui.count.toString();
-    querySelector("#slot1BuyAnotherone").onClick.listen(buildings[0].buyAnotherone);
     querySelector("#slot1Name").text = aktBui.name;
     var maxWorker = aktBui.maxWorker * aktBui.count;
     querySelector("#slot1Worker").text = aktBui.worker.toString() + " / " + maxWorker.toString();
-    querySelector("#slot1BuyWorker").onClick.listen(buildings[0].buyWorker);
   }
+}
+
+void initTable() {
+  Building aktBui = buildings[0]; // add a for loop here later.
+  querySelector("#slot1BuyAnotherone").onClick.listen(buildings[0].buyAnotherone);
+  querySelector("#slot1BuyWorker").onClick.listen(buildings[0].buyWorker);
 }
 
 void tick() {
