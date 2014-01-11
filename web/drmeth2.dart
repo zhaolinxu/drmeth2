@@ -3,12 +3,22 @@ import 'dart:html';
 double lastTime = 0.0;
 double unprocessedFrames = 0.0;
 
+Slots slots;
+
 double meth=0.0;
 double money=0.0;
 double veloMeth=0.0;
 double veloMoney=0.0;
 
 List<Building> buildings = new List<Building>(5); 
+
+class Street {
+  int dealer = 0;
+  int maxDealer = 2000;
+  int priceDealer = 1000;
+  
+  Street();
+}
 
 abstract class Building {
   String name;
@@ -52,6 +62,25 @@ class Trailer extends Building {
   Trailer() : super("Trailer", 1, 5, 1, 1.1);
 }
 
+class Slots {
+  Street street = new Street();
+  List<Building> buildings;
+  
+  Slots() {
+    this.buildings = new List<Building>(4);
+  }
+  
+  Slots.num(int slots) {
+    this.buildings = new List<Building>(slots);
+  }
+  
+  void addBuilding(Building bui) {
+    if(buildings[buildings.length-1] == 0) {
+      buildings.add(bui); 
+    }
+  }
+}
+
 void buyTrailer(MouseEvent e) {
   buildings[0] = new Trailer();
   //updateTable();
@@ -59,21 +88,23 @@ void buyTrailer(MouseEvent e) {
 }
 
 void main() {
+  buyTrailer(null);
   initButtons();
-  //initTable();
+  initTable();
   
   window.animationFrame.then(update);
 }
 
+
 void initButtons() {
-  querySelector("#imgCook")
-    ..onClick.listen(cook);
+  querySelector("#imgCook")..onClick.listen(cook);
   
-  querySelector("#imgSell")
-    ..onClick.listen(sell);
+  querySelector("#imgSell")..onClick.listen(sell);
+}
+
+void initSlots(){
+  slots = new Slots();
   
-  querySelector("#buyTrailer")
-      ..onClick.listen(buyTrailer);
 }
 
 void update(double time) {
@@ -111,12 +142,14 @@ void updateTable() {
 
 void initTable() {
   Building aktBui = buildings[0]; // add a for loop here later.
-  querySelector("#slot1BuyAnotherone").onClick.listen(buildings[0].buyAnotherone);
   querySelector("#slot1BuyWorker").onClick.listen(buildings[0].buyWorker);
+  querySelector("#slot1NameNBuy")..onClick.listen(buyTrailer)
+                                 ..text="Trailer";
+  querySelector("#slot1Price")..text=buildings[0].price.toString();
 }
 
 void tick() {
-  updateVelos(); // waaaaaay to often
+  updateVelos();
   meth += veloMeth;
   money += veloMoney;
 }
@@ -130,7 +163,7 @@ void cook(MouseEvent e) {
 }
 
 void sell(MouseEvent e) {
-  if(meth >= 1) {
+  if(meth >= 1.0) {
     meth--;
     money++;
   }
