@@ -9,8 +9,10 @@ double veloMeth=0.0;
 double veloMoney=0.0;
 
 UListElement slots;
+UListElement shop;
 Street street = new Street();
 List<Building> buildings = [];
+List<Building> structs = [new Trailer()];
 
 class Street {
   int dealer = 0;
@@ -102,6 +104,7 @@ LIElement createSlotLIElement(Building aktBui){
 void main() {
   initButtons();
   initSlots();
+  initShop();
   
   buyBuilding("Trailer");
   buyBuilding("Trailer");
@@ -116,6 +119,20 @@ void initButtons() {
   querySelector("#imgSell")
     ..onClick.listen(sell);
 }
+
+void initShop() {
+  shop = querySelector("#shop");
+  
+  void createButton(Building b) {
+    var button = new LIElement(); //make this for a list of all possible buildings.
+    button..text = b.price.toString() + " " + b.name
+        ..onClick.listen((e) => buyBuilding(b.name));
+    
+    shop.children.add(button);
+  }
+  
+  structs.forEach(createButton);
+  }
 
 void initSlots() {
   slots = querySelector("#slots");
