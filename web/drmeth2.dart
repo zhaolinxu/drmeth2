@@ -8,7 +8,17 @@ double money=0.0;
 double veloMeth=0.0;
 double veloMoney=0.0;
 
-List<Building> buildings = new List<Building>(5); 
+DivElement slots;
+Street street = new Street();
+List<Building> buildings = [null, null, null, null, null];
+
+class Street {
+  int dealer = 0;
+  int maxDealer = 2000;
+  int priceDealer = 1000;
+  
+  Street();
+}
 
 abstract class Building {
   String name;
@@ -29,7 +39,7 @@ abstract class Building {
     this.methPerSecond = methPerSecond;
   }
   
-  void buyAnotherone(MouseEvent e) {
+  void buyAnotherone() {
     if(money > price) {
         money -= price;
         count++;
@@ -52,15 +62,33 @@ class Trailer extends Building {
   Trailer() : super("Trailer", 1, 5, 1, 1.1);
 }
 
-void buyTrailer(MouseEvent e) {
-  buildings[0] = new Trailer();
-  //updateTable();
-  initTable();
+void buyBuilding(String type) {
+  var didBuy = false;
+  void buyIf(Building e) {
+    if(e != null && e.name == type) {
+      e.buyAnotherone();
+      didBuy = true;
+    }
+  }
+  buildings.forEach(buyIf);
+  
+  if(!didBuy){
+    switch (type) {
+      case "Trailer":
+        buildings.add(new Trailer());
+        break;
+      default:
+        null;
+    }
+  }
+  updateSlots();
 }
 
 void main() {
   initButtons();
-  //initTable();
+  initSlots();
+  
+  buyBuilding("Trailer");
   
   window.animationFrame.then(update);
 }
@@ -71,9 +99,26 @@ void initButtons() {
   
   querySelector("#imgSell")
     ..onClick.listen(sell);
+}
+
+void initSlots() {
+  slots = querySelector("#slots");
   
-  querySelector("#buyTrailer")
-      ..onClick.listen(buyTrailer);
+  for(int i = 0; i<=6; i++) {
+    var newLabel = new LabelElement();
+    slots.children.add(newLabel);
+  }
+}
+
+void updateSlots() {
+  slots.children[0].text = street.dealer.toString() + " / " + street.maxDealer.toString();
+  
+  for(int i = 0; i < buildings.length;i++) {
+    var aktBui = buildings[i];
+    if(aktBui != null) {
+      slots.children[i+1].text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
+    }
+  }
 }
 
 void update(double time) {
@@ -87,8 +132,6 @@ void update(double time) {
   }
   render();
   
-  updateTable(); //dunno
-  
   window.animationFrame.then(update);
 }
 
@@ -99,21 +142,6 @@ void updateVelos() {
   }
 }
 
-void updateTable() {
-  if(buildings[0] != null){
-    Building aktBui = buildings[0]; // add a for loop here later.
-    querySelector("#slot1Count").text = aktBui.count.toString();
-    querySelector("#slot1Name").text = aktBui.name;
-    var maxWorker = aktBui.maxWorker * aktBui.count;
-    querySelector("#slot1Worker").text = aktBui.worker.toString() + " / " + maxWorker.toString();
-  }
-}
-
-void initTable() {
-  Building aktBui = buildings[0]; // add a for loop here later.
-  querySelector("#slot1BuyAnotherone").onClick.listen(buildings[0].buyAnotherone);
-  querySelector("#slot1BuyWorker").onClick.listen(buildings[0].buyWorker);
-}
 
 void tick() {
   updateVelos(); // waaaaaay to often
