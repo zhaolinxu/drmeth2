@@ -4,13 +4,13 @@ double lastTime = 0.0;
 double unprocessedFrames = 0.0;
 
 double meth=0.0;
-double money=0.0;
+double money=50.0;
 double veloMeth=0.0;
 double veloMoney=0.0;
 
-DivElement slots;
+UListElement slots;
 Street street = new Street();
-List<Building> buildings = [null, null, null, null, null];
+List<Building> buildings = [];
 
 class Street {
   int dealer = 0;
@@ -26,7 +26,7 @@ abstract class Building {
   bool justBoughtAnotherone = false;
   int worker=1;//beware
   bool justBoughtWorker = false;
-  int maxWorker;
+  int _maxWorker;
   int priceWorker;
   double methPerSecond;
   int price;
@@ -34,9 +34,13 @@ abstract class Building {
   Building(String name, int price, int maxWorker, int priceWorker, double methPerSecond) {
     this.name = name;
     this.price = price;
-    this.maxWorker = maxWorker;
+    this._maxWorker = maxWorker;
     this.priceWorker = priceWorker;
     this.methPerSecond = methPerSecond;
+  }
+  
+  int get maxWorker {
+    return _maxWorker * count;
   }
   
   void buyAnotherone() {
@@ -47,7 +51,7 @@ abstract class Building {
   }
   
   void buyWorker(MouseEvent e) {
-    if(money > priceWorker && worker < maxWorker*count) { // make the button disable later!
+    if(money > priceWorker && worker < maxWorker) { // make the button disable later!
       money -= priceWorker;
       worker++;      
     }
@@ -73,21 +77,33 @@ void buyBuilding(String type) {
   buildings.forEach(buyIf);
   
   if(!didBuy){
+    Building toBuild;
     switch (type) {
       case "Trailer":
-        buildings.add(new Trailer());
+          toBuild = new Trailer();
         break;
       default:
-        null;
+        toBuild = null;
     }
+  
+    buildings.add(toBuild);
+    slots.children.add(createSlotLIElement(toBuild));
   }
-  updateSlots();
+  else updateSlots();
+  
+}
+
+LIElement createSlotLIElement(Building aktBui){
+  LIElement le = new LIElement();
+  le.text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
+  return le;
 }
 
 void main() {
   initButtons();
   initSlots();
   
+  buyBuilding("Trailer");
   buyBuilding("Trailer");
   
   window.animationFrame.then(update);
@@ -103,11 +119,9 @@ void initButtons() {
 
 void initSlots() {
   slots = querySelector("#slots");
-  
-  for(int i = 0; i<=6; i++) {
-    var newLabel = new LabelElement();
-    slots.children.add(newLabel);
-  }
+  var streetLabel = new LIElement();
+  streetLabel.text = street.dealer.toString() + " / " + street.maxDealer.toString();
+  slots.children.add(streetLabel);
 }
 
 void updateSlots() {
@@ -166,8 +180,8 @@ void sell(MouseEvent e) {
 
 void updateLabels() {
   querySelector("#labelMeth")
-    ..text = meth.toStringAsFixed(0) + " g";
+    ..text = meth.floor().toString() + " g";
   
   querySelector("#labelMoney")
-    ..text = money.toStringAsFixed(0) + " Dollar";
+    ..text = money.floor().toString() + " Dollar";
 }
