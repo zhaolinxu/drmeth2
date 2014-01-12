@@ -83,25 +83,28 @@ class Slots {
 
 void buyTrailer(MouseEvent e) {
   buildings[0] = new Trailer();
+  //updateTable();
   initTable();
 }
 
 void main() {
   buyTrailer(null);
   initButtons();
+  initTable();
   
   window.animationFrame.then(update);
 }
 
 
 void initButtons() {
-  querySelector("#imgCook").onClick.listen(cook);
+  querySelector("#imgCook")..onClick.listen(cook);
   
-  querySelector("#imgSell").onClick.listen(sell);
+  querySelector("#imgSell")..onClick.listen(sell);
 }
 
 void initSlots(){
   slots = new Slots();
+  
 }
 
 void update(double time) {
@@ -114,6 +117,8 @@ void update(double time) {
     unprocessedFrames-=1.0;
   }
   render();
+  
+  updateTable(); //dunno
   
   window.animationFrame.then(update);
 }
@@ -151,14 +156,13 @@ void tick() {
 
 void render() {
   updateLabels();
-  updateTable();
 }
 
-void cook(MouseEvent event) {
+void cook(MouseEvent e) {
   meth++;
 }
 
-void sell(MouseEvent event) {
+void sell(MouseEvent e) {
   if(meth >= 1.0) {
     meth--;
     money++;
