@@ -4,15 +4,14 @@ double lastTime = 0.0;
 double unprocessedFrames = 0.0;
 
 double meth=0.0;
-double money=50.0;
+double money=50000000.0;
 double veloMeth=0.0;
 double veloMoney=0.0;
 
 UListElement slots;
-UListElement shop;
+DivElement shop;
 Street street = new Street();
-List<Building> buildings = [];
-List<Building> structs = [new Trailer()];
+List<Building> buildings = [new Trailer(), new House()];
 
 class Street {
   int dealer = 0;
@@ -24,7 +23,8 @@ class Street {
 
 abstract class Building {
   String name;
-  int count=1;
+  int slotID;
+  int count=0;
   bool justBoughtAnotherone = false;
   int worker=1;//beware
   bool justBoughtWorker = false;
@@ -65,33 +65,24 @@ abstract class Building {
 }
 
 class Trailer extends Building {
-  Trailer() : super("Trailer", 1, 5, 1, 1.1);
+  Trailer() : super("Trailer", 2000, 5, 500, 0.1);
+}
+
+class House extends Building {
+  House() : super("House", 100000, 10, 5000, 0.2);
 }
 
 void buyBuilding(String type) {
-  var didBuy = false;
   void buyIf(Building e) {
     if(e != null && e.name == type) {
       e.buyAnotherone();
-      didBuy = true;
+      
+      if(e.count == 1) e.slotID = slots.children.length; // won't work if an slot item get deleted.
     }
+    
   }
   buildings.forEach(buyIf);
-  
-  if(!didBuy){
-    Building toBuild;
-    switch (type) {
-      case "Trailer":
-          toBuild = new Trailer();
-        break;
-      default:
-        toBuild = null;
-    }
-  
-    buildings.add(toBuild);
-    slots.children.add(createSlotLIElement(toBuild));
-  }
-  else updateSlots();
+  updateSlots();
   
 }
 
@@ -105,9 +96,6 @@ void main() {
   initButtons();
   initSlots();
   initShop();
-  
-  buyBuilding("Trailer");
-  buyBuilding("Trailer");
   
   window.animationFrame.then(update);
 }
@@ -124,15 +112,15 @@ void initShop() {
   shop = querySelector("#shop");
   
   void createButton(Building b) {
-    var button = new LIElement(); //make this for a list of all possible buildings.
+    var button = new ParagraphElement(); //make this for a list of all possible buildings.
     button..text = b.price.toString() + " " + b.name
         ..onClick.listen((e) => buyBuilding(b.name));
     
     shop.children.add(button);
   }
   
-  structs.forEach(createButton);
-  }
+  buildings.forEach(createButton);
+}
 
 void initSlots() {
   slots = querySelector("#slots");
@@ -146,8 +134,9 @@ void updateSlots() {
   
   for(int i = 0; i < buildings.length;i++) {
     var aktBui = buildings[i];
-    if(aktBui != null) {
-      slots.children[i+1].text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
+    if(aktBui != null && aktBui.count > 0) {
+      if(aktBui.slotID >= slots.children.length) slots.children.add(new LIElement());
+      slots.children[aktBui.slotID].text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
     }
   }
 }
