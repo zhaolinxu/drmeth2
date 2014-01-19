@@ -8,7 +8,7 @@ double money=50000000.0;
 double veloMeth=0.0;
 double veloMoney=0.0;
 
-UListElement slots;
+DivElement slots;
 DivElement shop;
 Street street = new Street();
 List<Building> buildings = [new Trailer(), new House()];
@@ -19,6 +19,13 @@ class Street {
   int priceDealer = 1000;
   
   Street();
+  
+  void buyDealer(Event e) {
+    if(money >= priceDealer && dealer < maxDealer) {
+      money -= priceDealer;
+      dealer++;
+    }
+  }
 }
 
 abstract class Building {
@@ -26,7 +33,7 @@ abstract class Building {
   int slotID;
   int count=0;
   bool justBoughtAnotherone = false;
-  int worker=1;//beware
+  int worker=0;
   bool justBoughtWorker = false;
   int _maxWorker;
   int priceWorker;
@@ -124,8 +131,9 @@ void initShop() {
 
 void initSlots() {
   slots = querySelector("#slots");
-  var streetLabel = new LIElement();
-  streetLabel.text = street.dealer.toString() + " / " + street.maxDealer.toString();
+  var streetLabel = new ParagraphElement();
+  streetLabel..text = street.dealer.toString() + " / " + street.maxDealer.toString()
+            ..onClick.listen(street.buyDealer);
   slots.children.add(streetLabel);
 }
 
@@ -135,7 +143,7 @@ void updateSlots() {
   for(int i = 0; i < buildings.length;i++) {
     var aktBui = buildings[i];
     if(aktBui != null && aktBui.count > 0) {
-      if(aktBui.slotID >= slots.children.length) slots.children.add(new LIElement());
+      if(aktBui.slotID >= slots.children.length) slots.children.add(new ParagraphElement());
       slots.children[aktBui.slotID].text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
     }
   }

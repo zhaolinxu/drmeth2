@@ -1,38 +1,35 @@
 <!DOCTYPE html>
 
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Drmeth2</title>
-    <link rel="stylesheet" href="drmeth2.css">
-  </head>
-  <body>
-    <h1>Drmeth2</h1>
-    
-    <p>Welcome to the glorius world of Dr. Meth 2!</p>
-    
-    <div id="cooknsell" style="float:left; width:35%; position:relative">
-      <p id="imgCook">
-        <img src="cook.png">
-        <label id="labelMeth"></label>
-      </p>
-      
-      <p id="imgSell">
-        <img src="sell.png">
-        <label id = "labelMoney"></label>
-      </p>
-    </div>
-    
-    <div style="float:left; position:relative">      
-      <ul id ="slots">
-      </ul>
-    </div>
-    
-    <div id = "shop" style="position:relative; width=35%; heigth=40%; top=60%">
-      
-    </div>
+<head>
+<meta charset="utf-8">
+<title>Drmeth2</title>
+<link rel="stylesheet" href="drmeth2.css">
+</head>
+<body>
+  <h1>Drmeth2</h1>
 
-    <script type="application/dart" src="drmeth2.dart" alt="cook"></script>
-    <script src="packages/browser/dart.js"></script>
-  </body>
+  <p>Welcome to the glorius world of Dr. Meth 2!</p>
+
+  <div style="height: 100%; width: 100%">
+  
+  <div id="cooknsell"
+    style="width: 35%; height: 40%; top: 8%; position: absolute">
+    <p id="imgCook">
+      <img src="cook.png"> <label id="labelMeth"></label>
+    </p>
+
+    <p id="imgSell">
+      <img src="sell.png"> <label id="labelMoney"></label>
+    </p>
+  </div>
+
+  <div id="slots" style="position: absolute; width: 65%; heigth: 40%; top: 8%; left: 35%"></div>
+
+  <div id="shop" style="position: absolute; width: 35%; height: 60%; top: 48%;""></div>
+
+  </div>
+  <script type="application/dart" src="drmeth2.dart" alt="cook"></script>
+  <script src="packages/browser/dart.js"></script>
+</body>
 </html>
