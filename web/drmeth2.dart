@@ -9,6 +9,7 @@ double veloMeth=0.0;
 double veloMoney=0.0;
 
 DivElement slots;
+DivElement slotBuy;
 DivElement shop;
 Street street = new Street();
 List<Building> buildings = [new Trailer(), new House()];
@@ -59,7 +60,7 @@ abstract class Building {
     }
   }
   
-  void buyWorker(MouseEvent e) {
+  void buyWorker() {
     if(money > priceWorker && worker < maxWorker) { // make the button disable later!
       money -= priceWorker;
       worker++;      
@@ -91,12 +92,6 @@ void buyBuilding(String type) {
   buildings.forEach(buyIf);
   updateSlots();
   
-}
-
-LIElement createSlotLIElement(Building aktBui){
-  LIElement le = new LIElement();
-  le.text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
-  return le;
 }
 
 void main() {
@@ -131,14 +126,27 @@ void initShop() {
 
 void initSlots() {
   slots = querySelector("#slots");
+  slotBuy = querySelector("#slotBuy");
+  
   var streetLabel = new ParagraphElement();
-  streetLabel..text = street.dealer.toString() + " / " + street.maxDealer.toString()
+  streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString()
             ..onClick.listen(street.buyDealer);
+  
   slots.children.add(streetLabel);
+  
+  slotBuy.children.add(slotBuyButton(0));
+}
+
+ParagraphElement slotBuyButton(int slotID) {
+  var button = new ParagraphElement();
+  button..text = "Buy a Worker"
+      ..onClick.listen((e) => street.buyDealer());
+  
+  return button;
 }
 
 void updateSlots() {
-  slots.children[0].text = street.dealer.toString() + " / " + street.maxDealer.toString();
+  slots.children[0].text = "da street " +street.dealer.toString() + " / " + street.maxDealer.toString();
   
   for(int i = 0; i < buildings.length;i++) {
     var aktBui = buildings[i];
