@@ -4,9 +4,10 @@ double lastTime = 0.0;
 double unprocessedFrames = 0.0;
 
 double meth=0.0;
-double money=50000000.0;
-double veloMeth=0.0;
+double money=10000.0;
+double veloMeth=0.0; //do i really need those velos?
 double veloMoney=0.0;
+double purity = 1.0; //in percent
 
 DivElement slots;
 DivElement slotBuy;
@@ -21,17 +22,25 @@ class Street {
   
   Street();
   
-  void buyDealer(Event e) {
+  void buyDealer() {
     if(money >= priceDealer && dealer < maxDealer) {
       money -= priceDealer;
       dealer++;
+      updateSlots();
     }
+  }
+  
+  double get sellVelo => dealer * 0.001;
+  
+  void sell(double amountMeth) {
+    meth -= amountMeth;
+    money += amountMeth * purity * 1.5; //will have to balance. 
   }
 }
 
 abstract class Building {
   String name;
-  int slotID;
+  int slotID = -1;
   int count=0;
   bool justBoughtAnotherone = false;
   int worker=0;
@@ -57,13 +66,15 @@ abstract class Building {
     if(money > price) {
         money -= price;
         count++;
+        updateSlots();
     }
   }
   
   void buyWorker() {
     if(money > priceWorker && worker < maxWorker) { // make the button disable later!
       money -= priceWorker;
-      worker++;      
+      worker++;
+      updateSlots();
     }
   }
   
@@ -83,15 +94,13 @@ class House extends Building {
 void buyBuilding(String type) {
   void buyIf(Building e) {
     if(e != null && e.name == type) {
-      e.buyAnotherone();
+      if(e.count == 0) e.slotID = slots.children.length; // won't work if an slot item get deleted.
       
-      if(e.count == 1) e.slotID = slots.children.length; // won't work if an slot item get deleted.
+      e.buyAnotherone();
     }
     
   }
-  buildings.forEach(buyIf);
-  updateSlots();
-  
+  buildings.forEach(buyIf);  
 }
 
 void main() {
@@ -129,20 +138,32 @@ void initSlots() {
   slotBuy = querySelector("#slotBuy");
   
   var streetLabel = new ParagraphElement();
-  streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString()
-            ..onClick.listen(street.buyDealer);
+  streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString();
+  
+  var buyDealerButton = new ParagraphElement();
+  buyDealerButton..text = "Buy a Dealer"
+      ..onClick.listen((e) => street.buyDealer());
   
   slots.children.add(streetLabel);
   
-  slotBuy.children.add(slotBuyButton(0));
+  slotBuy.children.add(buyDealerButton);
 }
 
 ParagraphElement slotBuyButton(int slotID) {
   var button = new ParagraphElement();
   button..text = "Buy a Worker"
-      ..onClick.listen((e) => street.buyDealer());
+      ..onClick.listen((e) => buildings[getIndexFromSlotID(slotID)].buyWorker());
   
   return button;
+}
+
+int getIndexFromSlotID(int slotID) {
+  for(int i = 0; i < buildings.length; i++) {
+    if(buildings[i].slotID == slotID) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 void updateSlots() {
@@ -151,7 +172,10 @@ void updateSlots() {
   for(int i = 0; i < buildings.length;i++) {
     var aktBui = buildings[i];
     if(aktBui != null && aktBui.count > 0) {
-      if(aktBui.slotID >= slots.children.length) slots.children.add(new ParagraphElement());
+      if(aktBui.slotID >= slots.children.length) {
+        slots.children.add(new ParagraphElement());
+        slotBuy.children.add(slotBuyButton(aktBui.slotID));
+      }
       slots.children[aktBui.slotID].text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
     }
   }
@@ -171,7 +195,7 @@ void update(double time) {
   window.animationFrame.then(update);
 }
 
-void updateVelos() {
+void calculateMethVelo() {
   veloMeth = 0.0;
   for(int i = 0; i<buildings.length; i++){
     if(buildings[i] != null) veloMeth += buildings[i].methVelo;
@@ -180,9 +204,11 @@ void updateVelos() {
 
 
 void tick() {
-  updateVelos(); // waaaaaay to often
+  calculateMethVelo();
   meth += veloMeth;
-  money += veloMoney;
+  
+  if(street.sellVelo < meth) street.sell(street.sellVelo);
+  else street.sell(meth);
 }
 
 void render() {
