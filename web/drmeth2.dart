@@ -1,4 +1,6 @@
 import 'dart:html';
+import 'dart:convert' show JSON;
+import 'dart:async' show Future;
 
 double lastTime = 0.0;
 double unprocessedFrames = 0.0;
@@ -13,7 +15,7 @@ DivElement slots;
 DivElement slotBuy;
 DivElement shop;
 Street street = new Street();
-List<Building> buildings = [new Trailer(), new House()];
+List<Building> buildings = [null, new House()];
 
 class Street {
   int dealer = 0;
@@ -38,13 +40,11 @@ class Street {
   }
 }
 
-abstract class Building {
+class Building {
   String name;
   int slotID = -1;
   int count=0;
-  bool justBoughtAnotherone = false;
   int worker=0;
-  bool justBoughtWorker = false;
   int _maxWorker;
   int priceWorker;
   double methPerSecond;
@@ -104,9 +104,7 @@ void buyBuilding(String type) {
 }
 
 void main() {
-  initButtons();
-  initSlots();
-  initShop();
+  init();
   
   window.animationFrame.then(update);
 }
@@ -119,35 +117,7 @@ void initButtons() {
     ..onClick.listen(sell);
 }
 
-void initShop() {
-  shop = querySelector("#shop");
-  
-  void createButton(Building b) {
-    var button = new ParagraphElement(); //make this for a list of all possible buildings.
-    button..text = b.price.toString() + " " + b.name
-        ..onClick.listen((e) => buyBuilding(b.name));
-    
-    shop.children.add(button);
-  }
-  
-  buildings.forEach(createButton);
-}
 
-void initSlots() {
-  slots = querySelector("#slots");
-  slotBuy = querySelector("#slotBuy");
-  
-  var streetLabel = new ParagraphElement();
-  streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString();
-  
-  var buyDealerButton = new ParagraphElement();
-  buyDealerButton..text = "Buy a Dealer"
-      ..onClick.listen((e) => street.buyDealer());
-  
-  slots.children.add(streetLabel);
-  
-  slotBuy.children.add(buyDealerButton);
-}
 
 ParagraphElement slotBuyButton(int slotID) {
   var button = new ParagraphElement();
@@ -232,4 +202,64 @@ void updateLabels() {
   
   querySelector("#labelMoney")
     ..text = money.floor().toString() + " Dollar";
+}
+
+void init() {
+  void initShop(String n) {
+    shop = querySelector("#shop");
+    
+    void createButton(Building b) {
+      var button = new ParagraphElement();
+      button..text = b.price.toString() + " " + b.name
+          ..onClick.listen((e) => buyBuilding(b.name));
+      
+      shop.children.add(button);
+    }
+    
+    buildings.forEach(createButton);
+  }
+
+  void initSlots(String n) {
+    slots = querySelector("#slots");
+    slotBuy = querySelector("#slotBuy");
+    
+    var streetLabel = new ParagraphElement();
+    streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString();
+    
+    var buyDealerButton = new ParagraphElement();
+    buyDealerButton..text = "Buy a Dealer"
+        ..onClick.listen((e) => street.buyDealer());
+    
+    slots.children.add(streetLabel);
+    
+    slotBuy.children.add(buyDealerButton);
+  }
+  
+  void buildBuildings(String jsonString) {
+    Map blueprint = JSON.decode(jsonString);
+    
+    buildings[0] = new Building(blueprint[0][0], blueprint[0][1], blueprint[0][2], blueprint[0][3], blueprint[0][4]);
+    initShop(null);
+    initSlots(null);
+  }
+  
+  Future loadJSON(){
+    return HttpRequest.getString("blueprint.json")
+        .then(buildBuildings)
+        .then(initShop)
+        .then(initSlots);
+  }
+  
+  loadJSON();
+}
+
+void loadTrailer(){
+  void buildBuildings(String jsonString) {
+    Map blueprint = JSON.decode(jsonString);
+    
+    buildings[0] = new Building(blueprint[0][0], blueprint[0][1], blueprint[0][2], blueprint[0][3], blueprint[0][4]);
+  }
+  
+  
+
 }
