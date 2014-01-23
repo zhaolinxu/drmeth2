@@ -6,7 +6,7 @@ double lastTime = 0.0;
 double unprocessedFrames = 0.0;
 
 double meth=0.0;
-double money=10000.0;
+double money=0.0;
 double veloMeth=0.0; //do i really need those velos?
 double veloMoney=0.0;
 double purity = 0.2; //in percent
@@ -36,7 +36,7 @@ class Street {
   
   void sell(double amountMeth) {
     meth -= amountMeth;
-    money += amountMeth * purity * 1.5; //will have to balance. 
+    money += amountMeth * purity * 100; //will have to balance. 
   }
 }
 
@@ -173,7 +173,7 @@ void cook(MouseEvent e) {
 void sell(MouseEvent e) {
   if(meth >= 1) {
     meth--;
-    money++;
+    money += purity * 100;
   }
 }
 
