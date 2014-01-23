@@ -15,7 +15,7 @@ DivElement slots;
 DivElement slotBuy;
 DivElement shop;
 Street street = new Street();
-List<Building> buildings = [null, new House()];
+List<Building> buildings = [];
 
 class Street {
   int dealer = 0;
@@ -83,14 +83,6 @@ class Building {
   }
 }
 
-class Trailer extends Building {
-  Trailer() : super("Trailer", 2000, 5, 500, 0.1);
-}
-
-class House extends Building {
-  House() : super("House", 100000, 10, 5000, 0.2);
-}
-
 void buyBuilding(String type) {
   void buyIf(Building e) {
     if(e != null && e.name == type) {
@@ -108,16 +100,6 @@ void main() {
   
   window.animationFrame.then(update);
 }
-
-void initButtons() {
-  querySelector("#imgCook")
-    ..onClick.listen(cook);
-  
-  querySelector("#imgSell")
-    ..onClick.listen(sell);
-}
-
-
 
 ParagraphElement slotBuyButton(int slotID) {
   var button = new ParagraphElement();
@@ -172,7 +154,6 @@ void calculateMethVelo() {
   }
 }
 
-
 void tick() {
   calculateMethVelo();
   meth += veloMeth;
@@ -205,7 +186,15 @@ void updateLabels() {
 }
 
 void init() {
-  void initShop(String n) {
+  void initButtons() {
+    querySelector("#imgCook")
+    ..onClick.listen(cook);
+  
+  querySelector("#imgSell")
+    ..onClick.listen(sell);
+}
+  
+  void initShop() {
     shop = querySelector("#shop");
     
     void createButton(Building b) {
@@ -219,7 +208,7 @@ void init() {
     buildings.forEach(createButton);
   }
 
-  void initSlots(String n) {
+  void initSlots() {
     slots = querySelector("#slots");
     slotBuy = querySelector("#slotBuy");
     
@@ -238,18 +227,17 @@ void init() {
   void buildBuildings(String jsonString) {
     Map blueprint = JSON.decode(jsonString);
     
-    buildings[0] = new Building(blueprint[0][0], blueprint[0][1], blueprint[0][2], blueprint[0][3], blueprint[0][4]);
-    initShop(null);
-    initSlots(null);
+    buildings.add(new Building(blueprint['a'][0], blueprint['a'][1], blueprint['a'][2], blueprint['a'][3], blueprint['a'][4]));
+    buildings.add(new Building(blueprint['b'][0], blueprint['b'][1], blueprint['b'][2], blueprint['b'][3], blueprint['b'][4]));
+    initShop();
+    initSlots();
   }
   
   Future loadJSON(){
     return HttpRequest.getString("blueprint.json")
-        .then(buildBuildings)
-        .then(initShop)
-        .then(initSlots);
+        .then(buildBuildings);
   }
-  
+  initButtons();
   loadJSON();
 }
 
