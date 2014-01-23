@@ -6,10 +6,13 @@ double lastTime = 0.0;
 double unprocessedFrames = 0.0;
 
 double meth=0.0;
-double money=0.0;
-double veloMeth=0.0; //do i really need those velos?
-double veloMoney=0.0;
-double purity = 0.2; //in percent
+double money=10000.0;
+//all velos are frame based (60fps)
+double veloMeth=0.0; //how much meth your buildings make
+double veloMethFlow = 0.0; // veloMeth minus the amout of meth sold by the dealers
+double veloMoney=0.0; //amount of money you get
+
+double purity = 20.0; //in percent
 
 DivElement slots;
 DivElement slotBuy;
@@ -32,12 +35,8 @@ class Street {
     }
   }
   
-  double get sellVelo => dealer * 0.3/60;
+  double get sellVelo => dealer * 0.1/60;
   
-  void sell(double amountMeth) {
-    meth -= amountMeth;
-    money += amountMeth * purity * 100; //will have to balance. 
-  }
 }
 
 class Building {
@@ -101,6 +100,66 @@ void main() {
   window.animationFrame.then(update);
 }
 
+void init() {
+  void initButtons() {
+    querySelector("#imgCook")
+    ..onClick.listen(cook);
+  
+  querySelector("#imgSell")
+    ..onClick.listen(sell);
+}
+  
+  void initShop() {
+    shop = querySelector("#shop");
+    
+    void createButton(Building b) {
+      var button = new ParagraphElement();
+      button..text = b.price.toString() + " " + b.name
+          ..onClick.listen((e) => buyBuilding(b.name));
+      
+      shop.children.add(button);
+    }
+    
+    buildings.forEach(createButton);
+  }
+
+  void initSlots() {
+    slots = querySelector("#slots");
+    slotBuy = querySelector("#slotBuy");
+    
+    var streetLabel = new ParagraphElement();
+    streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString();
+    
+    var buyDealerButton = new ParagraphElement();
+    buyDealerButton..text = "Buy a Dealer"
+        ..onClick.listen((e) => street.buyDealer());
+    
+    slots.children.add(streetLabel);
+    
+    slotBuy.children.add(buyDealerButton);
+  }
+  
+  void buildBuildings(String jsonString) {
+    void addBuilding(String key, List blueprint) {
+      buildings.add(new Building(key, blueprint[0], blueprint[1], blueprint[2], blueprint[3]));
+    }
+    
+    Map blueprint = JSON.decode(jsonString);
+    blueprint.forEach(addBuilding);
+    
+    initShop();
+    initSlots();
+  }
+  
+  Future loadJSON(){
+    return HttpRequest.getString("blueprint.json")
+        .then(buildBuildings);
+  }
+  initButtons();
+  loadJSON();
+}
+
+
 ParagraphElement slotBuyButton(int slotID) {
   var button = new ParagraphElement();
   button..text = "Buy a Worker"
@@ -147,19 +206,29 @@ void update(double time) {
   window.animationFrame.then(update);
 }
 
-void calculateMethVelo() {
+void calculateVelos() {
   veloMeth = 0.0;
   for(int i = 0; i<buildings.length; i++){
     if(buildings[i] != null) veloMeth += buildings[i].methVelo;
   }
+  
+  veloMethFlow = veloMeth;
+  
+  
+  var sellAmount;
+  if(street.sellVelo < meth) sellAmount = street.sellVelo;
+  else sellAmount = meth;
+  
+  veloMoney = sellAmount * purity;
+  veloMethFlow -= sellAmount;
 }
 
 void tick() {
-  calculateMethVelo();
-  meth += veloMeth;
+  calculateVelos();
+  meth += veloMethFlow;
+  money += veloMoney;
   
-  if(street.sellVelo < meth) street.sell(street.sellVelo);
-  else street.sell(meth);
+  
 }
 
 void render() {
@@ -173,84 +242,22 @@ void cook(MouseEvent e) {
 void sell(MouseEvent e) {
   if(meth >= 1) {
     meth--;
-    money += purity * 100;
+    money += purity;
   }
 }
 
 void updateLabels() {
   querySelector("#labelMeth")
-    ..text = meth.floor().toString() + " g";
+    ..text = meth.floor().toString() + "g    - " + (veloMeth*60).toStringAsFixed(2) + "/" + (veloMethFlow * 60).toStringAsFixed(2) + "g / SEC";
   
   querySelector("#labelMoney")
-    ..text = money.floor().toString() + " Dollar";
+    ..text = money.floor().toString() + " Dollar    - " + (veloMoney*60).toStringAsFixed(0) + "Dollar/SEC";
   
   querySelector("#labelPurity")
-    ..text = (purity*100).round().toString() + " %";
+    ..text = (purity).toStringAsFixed(0) + " %";
 }
 
-void init() {
-  void initButtons() {
-    querySelector("#imgCook")
-    ..onClick.listen(cook);
+void save() {
   
-  querySelector("#imgSell")
-    ..onClick.listen(sell);
-}
-  
-  void initShop() {
-    shop = querySelector("#shop");
-    
-    void createButton(Building b) {
-      var button = new ParagraphElement();
-      button..text = b.price.toString() + " " + b.name
-          ..onClick.listen((e) => buyBuilding(b.name));
-      
-      shop.children.add(button);
-    }
-    
-    buildings.forEach(createButton);
-  }
-
-  void initSlots() {
-    slots = querySelector("#slots");
-    slotBuy = querySelector("#slotBuy");
-    
-    var streetLabel = new ParagraphElement();
-    streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString();
-    
-    var buyDealerButton = new ParagraphElement();
-    buyDealerButton..text = "Buy a Dealer"
-        ..onClick.listen((e) => street.buyDealer());
-    
-    slots.children.add(streetLabel);
-    
-    slotBuy.children.add(buyDealerButton);
-  }
-  
-  void buildBuildings(String jsonString) {
-    Map blueprint = JSON.decode(jsonString);
-    
-    buildings.add(new Building(blueprint['a'][0], blueprint['a'][1], blueprint['a'][2], blueprint['a'][3], blueprint['a'][4]));
-    buildings.add(new Building(blueprint['b'][0], blueprint['b'][1], blueprint['b'][2], blueprint['b'][3], blueprint['b'][4]));
-    initShop();
-    initSlots();
-  }
-  
-  Future loadJSON(){
-    return HttpRequest.getString("blueprint.json")
-        .then(buildBuildings);
-  }
-  initButtons();
-  loadJSON();
 }
 
-void loadTrailer(){
-  void buildBuildings(String jsonString) {
-    Map blueprint = JSON.decode(jsonString);
-    
-    buildings[0] = new Building(blueprint[0][0], blueprint[0][1], blueprint[0][2], blueprint[0][3], blueprint[0][4]);
-  }
-  
-  
-
-}
