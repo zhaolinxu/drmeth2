@@ -9,7 +9,7 @@ double meth=0.0;
 double money=10000.0;
 double veloMeth=0.0; //do i really need those velos?
 double veloMoney=0.0;
-double purity = 1.0; //in percent
+double purity = 0.2; //in percent
 
 DivElement slots;
 DivElement slotBuy;
@@ -32,7 +32,7 @@ class Street {
     }
   }
   
-  double get sellVelo => dealer * 0.001;
+  double get sellVelo => dealer * 0.3/60;
   
   void sell(double amountMeth) {
     meth -= amountMeth;
@@ -167,7 +167,7 @@ void render() {
 }
 
 void cook(MouseEvent e) {
-  meth++;
+  meth += 1 + meth*0.01;
 }
 
 void sell(MouseEvent e) {
@@ -183,6 +183,9 @@ void updateLabels() {
   
   querySelector("#labelMoney")
     ..text = money.floor().toString() + " Dollar";
+  
+  querySelector("#labelPurity")
+    ..text = (purity*100).round().toString() + " %";
 }
 
 void init() {
