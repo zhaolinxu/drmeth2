@@ -6,7 +6,7 @@ double lastTime = 0.0;
 double unprocessedFrames = 0.0;
 
 double meth=0.0;
-double money=10000.0;
+double money=1000000.0;
 //all velos are frame based (60fps)
 double veloMeth=0.0; //how much meth your buildings make
 double veloMethFlow = 0.0; // veloMeth minus the amout of meth sold by the dealers
@@ -19,6 +19,11 @@ DivElement slotBuy;
 DivElement shop;
 Street street = new Street();
 List<Building> buildings = [];
+
+void save() {
+  String saveString;
+  
+}
 
 class Street {
   int dealer = 0;
@@ -36,7 +41,6 @@ class Street {
   }
   
   double get sellVelo => dealer * 0.1/60;
-  
 }
 
 class Building {
@@ -47,14 +51,16 @@ class Building {
   int _maxWorker;
   int priceWorker;
   double methPerSecond;
+  double purity;
   int price;
   
-  Building(String name, int price, int maxWorker, int priceWorker, double methPerSecond) {
+  Building(String name, int price, int maxWorker, int priceWorker, double methPerSecond, double ppurity) {
     this.name = name;
     this.price = price;
     this._maxWorker = maxWorker;
     this.priceWorker = priceWorker;
     this.methPerSecond = methPerSecond;
+    this.purity = ppurity;
   }
   
   int get maxWorker {
@@ -141,7 +147,7 @@ void init() {
   
   void buildBuildings(String jsonString) {
     void addBuilding(String key, List blueprint) {
-      buildings.add(new Building(key, blueprint[0], blueprint[1], blueprint[2], blueprint[3]));
+      buildings.add(new Building(key, blueprint[0], blueprint[1], blueprint[2], blueprint[3], blueprint[4]));
     }
     
     Map blueprint = JSON.decode(jsonString);
@@ -221,6 +227,15 @@ void calculateVelos() {
   
   veloMoney = sellAmount * purity;
   veloMethFlow -= sellAmount;
+  
+  if(veloMeth > 0){
+    var all = 0;
+    for(int i = 0; i<buildings.length; i++) {
+      if(buildings[i] != null && buildings[i].methVelo >= 0) all += buildings[i].purity*buildings[i].methVelo;
+    }
+  
+    purity = all/veloMeth;
+  }
 }
 
 void tick() {
@@ -247,6 +262,7 @@ void sell(MouseEvent e) {
 }
 
 void updateLabels() {
+  calculateVelos();
   querySelector("#labelMeth")
     ..text = meth.floor().toString() + "g    - " + (veloMeth*60).toStringAsFixed(2) + "/" + (veloMethFlow * 60).toStringAsFixed(2) + "g / SEC";
   
@@ -255,9 +271,5 @@ void updateLabels() {
   
   querySelector("#labelPurity")
     ..text = (purity).toStringAsFixed(0) + " %";
-}
-
-void save() {
-  
 }
 
