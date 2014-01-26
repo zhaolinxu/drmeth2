@@ -45,7 +45,6 @@ class Street {
 
 class Building {
   String name;
-  int slotID = -1;
   int count=0;
   int worker=0;
   int _maxWorker;
@@ -86,18 +85,28 @@ class Building {
   double get methVelo {
     return worker * methPerSecond / 60;
   }
+  
+  void sell() {
+    money += (count*price + worker*priceWorker)/2;
+    count = worker = 0;
+  }
 }
 
-void buyBuilding(String type) {
-  void buyIf(Building e) {
-    if(e != null && e.name == type) {
-      if(e.count == 0) e.slotID = slots.children.length; // won't work if an slot item get deleted.
-      
-      e.buyAnotherone();
+void buyBuilding(int id) {
+  buildings[id].count == 0 ? newSlot(id) : updateSlots(); // won't work if an slot item get deleted.
+  buildings[id].buyAnotherone();
+}
+
+void sellBuilding(int id) {
+  Element getElementFromId(List list, int id) {
+    for(int i = 0; i < list.length; i++) {
+      if(list[i].id == id.toString()) return list[i];
     }
-    
   }
-  buildings.forEach(buyIf);  
+  
+  buildings[id].sell();
+  slots.children.remove(getElementFromId(slots.children, id));
+  slotBuy.children.remove(getElementFromId(slotBuy.children, id));
 }
 
 void main() {
@@ -118,15 +127,13 @@ void init() {
   void initShop() {
     shop = querySelector("#shop");
     
-    void createButton(Building b) {
+    for(int i = 0; i < buildings.length; i++) {
       var button = new ParagraphElement();
-      button..text = b.price.toString() + " " + b.name
-          ..onClick.listen((e) => buyBuilding(b.name));
+      button..text = buildings[i].price.toString() + " " + buildings[i].name
+          ..onClick.listen((e) => buyBuilding(i));
       
       shop.children.add(button);
     }
-    
-    buildings.forEach(createButton);
   }
 
   void initSlots() {
@@ -166,36 +173,48 @@ void init() {
 }
 
 
-ParagraphElement slotBuyButton(int slotID) {
-  var button = new ParagraphElement();
-  button..text = "Buy a Worker"
-      ..onClick.listen((e) => buildings[getIndexFromSlotID(slotID)].buyWorker());
+LabelElement slotBuyButton(int id) {
+  var button = new LabelElement();
+  button..text = "Buy a Worker             "
+      ..onClick.listen((e) => buildings[id].buyWorker());
   
   return button;
 }
 
-int getIndexFromSlotID(int slotID) {
-  for(int i = 0; i < buildings.length; i++) {
-    if(buildings[i].slotID == slotID) {
-      return i;
-    }
-  }
-  return -1;
+LabelElement slotSellButton(int id) {
+  var button = new LabelElement();
+  button..text = "Sell dis"
+      ..onClick.listen((e) => sellBuilding(id));
+  
+  return button;
 }
 
 void updateSlots() {
   slots.children[0].text = "da street " +street.dealer.toString() + " / " + street.maxDealer.toString();
   
-  for(int i = 0; i < buildings.length;i++) {
-    var aktBui = buildings[i];
-    if(aktBui != null && aktBui.count > 0) {
-      if(aktBui.slotID >= slots.children.length) {
-        slots.children.add(new ParagraphElement());
-        slotBuy.children.add(slotBuyButton(aktBui.slotID));
-      }
-      slots.children[aktBui.slotID].text = aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
-    }
+  void updateBuildingSlots(ParagraphElement e) {
+    if(e.id != "") e.text = slotString(int.parse(e.id));
   }
+  
+  slots.children.forEach(updateBuildingSlots);
+}
+
+String slotString(int id) {
+  Building aktBui = buildings[id];
+  return aktBui.count.toString() + " " + aktBui.name + " " + aktBui.worker.toString() + " / " + aktBui.maxWorker.toString();
+}
+
+void newSlot(int id) {
+  var par = new ParagraphElement();
+  par..text = slotString(id)
+      ..id = id.toString();
+  slots.children.add(par);
+  
+  ParagraphElement parBuy = new ParagraphElement();
+  parBuy.id = id.toString();
+  parBuy.children..add(slotBuyButton(id))
+                 ..add(slotSellButton(id));
+  slotBuy.children.add(parBuy);
 }
 
 void update(double time) {
@@ -222,8 +241,7 @@ void calculateVelos() {
   
   
   var sellAmount;
-  if(street.sellVelo < meth) sellAmount = street.sellVelo;
-  else sellAmount = meth;
+  street.sellVelo < meth ? sellAmount = street.sellVelo : sellAmount = meth;
   
   veloMoney = sellAmount * purity;
   veloMethFlow -= sellAmount;
