@@ -146,14 +146,13 @@ void init() {
     slots = querySelector("#slots");
     slotBuy = querySelector("#slotBuy");
     
-    var streetLabel = new ParagraphElement();
-    streetLabel..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString();
+    var streetImage = new ImageElement(src: "street.png");
+    streetImage..text = "da street " + street.dealer.toString() + " / " + street.maxDealer.toString();
     
-    var buyDealerButton = new ParagraphElement();
-    buyDealerButton..text = "Buy a Dealer"
-        ..onClick.listen((e) => street.buyDealer());
+    var buyDealerButton = new ImageElement(src: "buyWorkerButton.png");
+    buyDealerButton.onClick.listen((e) => street.buyDealer());
     
-    slots.children.add(streetLabel);
+    slots.children.add(streetImage);
     
     slotBuy.children.add(buyDealerButton);
   }
@@ -195,7 +194,7 @@ Element slotSellButton(int id) {
 void updateSlots() {
   slots.children[0].text = "da street " +street.dealer.toString() + " / " + street.maxDealer.toString();
   
-  void updateBuildingSlots(ParagraphElement e) {
+  void updateBuildingSlots(Element e) {
     if(e.id != "") e.text = slotString(int.parse(e.id));
   }
   
@@ -208,7 +207,7 @@ String slotString(int id) {
 }
 
 void newSlot(int id) {
-  var par = new ParagraphElement();
+  var par = new ImageElement(src : buildings[id].name.toLowerCase()+".png");
   par..text = slotString(id)
       ..id = id.toString();
   slots.children.add(par);
@@ -225,10 +224,9 @@ void update(double time) {
   unprocessedFrames+=(now-lastTime)*60.0/1000.0; // 60 fps
   lastTime = now;
   if (unprocessedFrames>10.0) unprocessedFrames = 10.0; 
-  while (unprocessedFrames>1.0) {
+  for(double uf = unprocessedFrames; uf>1.0; uf-= 1.0)
     tick();
-    unprocessedFrames-=1.0;
-  }
+  
   render();
   
   window.animationFrame.then(update);
