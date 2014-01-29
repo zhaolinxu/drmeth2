@@ -14,6 +14,10 @@ double veloMoney=0.0; //amount of money you get
 
 double purity = 20.0; //in percent
 
+double sellBonus = 1.0;
+double cookBonus = 1.0;
+double priceBonus = 1.0;
+
 DivElement slots;
 DivElement slotBuy;
 DivElement shop;
@@ -24,6 +28,8 @@ void save() {
   String saveString;
   
 }
+
+double get methprice { return purity * priceBonus; }
 
 class Street {
   int dealer = 0;
@@ -40,7 +46,7 @@ class Street {
     }
   }
   
-  double get sellVelo => dealer * 0.1/60;
+  double get sellVelo => dealer * 0.1/60 * sellBonus;
 }
 
 class Building {
@@ -173,18 +179,15 @@ void init() {
 }
 
 
-LabelElement slotBuyButton(int id) {
-  var button = new LabelElement();
-  button..text = "Buy a Worker             "
-      ..onClick.listen((e) => buildings[id].buyWorker());
-  
-  return button;
+Element slotBuyButton(int id) {
+  var button = new ImageElement(src: "buyWorkerButton.png");
+  button.onClick.listen((e) => buildings[id].buyWorker());
+      return button;
 }
 
-LabelElement slotSellButton(int id) {
-  var button = new LabelElement();
-  button..text = "Sell dis"
-      ..onClick.listen((e) => sellBuilding(id));
+Element slotSellButton(int id) {
+  var button = new ImageElement(src: "sellBuildingButton.png");
+  button.onClick.listen((e) => sellBuilding(id));
   
   return button;
 }
@@ -236,6 +239,7 @@ void calculateVelos() {
   for(int i = 0; i<buildings.length; i++){
     if(buildings[i] != null) veloMeth += buildings[i].methVelo;
   }
+  veloMeth *= cookBonus;
   
   veloMethFlow = veloMeth;
   
@@ -243,7 +247,7 @@ void calculateVelos() {
   var sellAmount;
   street.sellVelo < meth ? sellAmount = street.sellVelo : sellAmount = meth;
   
-  veloMoney = sellAmount * purity;
+  veloMoney = sellAmount * methprice;
   veloMethFlow -= sellAmount;
   
   if(veloMeth > 0){
@@ -260,8 +264,6 @@ void tick() {
   calculateVelos();
   meth += veloMethFlow;
   money += veloMoney;
-  
-  
 }
 
 void render() {
@@ -275,7 +277,7 @@ void cook(MouseEvent e) {
 void sell(MouseEvent e) {
   if(meth >= 1) {
     meth--;
-    money += purity;
+    money += methprice;
   }
 }
 
