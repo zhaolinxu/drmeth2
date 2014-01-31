@@ -21,6 +21,13 @@ double priceBonus = 1.0;
 DivElement slots;
 DivElement slotBuy;
 DivElement shop;
+
+ParagraphElement shopSwitchPara;
+List shopBuyChildren = new List();
+List shopHireChildren = new List();
+List shopUpgradeChildren = new List();
+List shopAchievmentChildren = new List();
+
 Street street = new Street();
 List<Building> buildings = [];
 
@@ -129,6 +136,26 @@ void init() {
   querySelector("#imgSell")
     ..onClick.listen(sell);
 }
+void changeShopChildren(String state) {
+  var children;
+    switch (state) {
+      case "shop": 
+        children = shopBuyChildren;
+        break;
+      case "hire":
+        children = shopHireChildren;
+        break;
+      case "upgrade":
+        children = shopUpgradeChildren;
+        break;
+      case "achievment":
+        children = shopAchievmentChildren;
+    }
+    
+    shop.children.clear();
+    shop.children.add(shopSwitchPara);
+    shop.children.addAll(children);
+  }
   
   void initShop() {
     shop = querySelector("#shop");
@@ -138,10 +165,25 @@ void init() {
       button..text = buildings[i].price.toString() + " " + buildings[i].name
           ..onClick.listen((e) => buyBuilding(i));
       
-      shop.children.add(button);
+      shopBuyChildren.add(button);
     }
+    
+    shopSwitchPara = new ParagraphElement();
+    
+    var states = ["shop", "hire", "upgrade", "achievment"];
+    for(int i = 0; i< states.length;i++) {
+      var but = new LabelElement();
+      but..onClick.listen((e) => changeShopChildren(states[i]))
+         ..text = states[i].toUpperCase(); 
+      
+      shopSwitchPara.children.add(but);
+    }
+    
+    shop.children.add(shopSwitchPara);
   }
 
+  
+  
   void initSlots() {
     slots = querySelector("#slots");
     slotBuy = querySelector("#slotBuy");
@@ -151,6 +193,9 @@ void init() {
     
     var buyDealerButton = new ImageElement(src: "buyWorkerButton.png");
     buyDealerButton.onClick.listen((e) => street.buyDealer());
+    
+    var emptyB = new ImageElement(src: "emptyButton.png");
+    slotBuy.children.add(emptyB);
     
     slots.children.add(streetImage);
     
